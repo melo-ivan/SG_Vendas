@@ -1,0 +1,91 @@
+-- 1. Criação do Banco de Dados
+DROP DATABASE sistema_vendas;
+CREATE DATABASE sistema_vendas;
+
+-- 2. Seleção do Banco de Dados
+USE sistema_vendas;
+
+-- 3. Criação da Tabela de Clientes
+CREATE TABLE clientes (
+    id_cliente INT AUTO_INCREMENT PRIMARY KEY,  -- Identificador único do cliente
+    nome VARCHAR(100) NOT NULL,                -- Nome do cliente
+    email VARCHAR(100) UNIQUE NOT NULL,        -- Email do cliente (único)
+    telefone VARCHAR(15)                       -- Telefone do cliente
+);
+
+-- 4. Criação da Tabela de Produtos
+CREATE TABLE produtos (
+    id_produto INT AUTO_INCREMENT PRIMARY KEY,  -- Identificador único do produto
+    nome VARCHAR(100) NOT NULL,                -- Nome do produto
+    preco DECIMAL(10, 2) NOT NULL,            -- Preço do produto
+    quantidade_estoque INT NOT NULL            -- Quantidade disponível em estoque
+);
+
+-- 5. Criação da Tabela de Vendas
+CREATE TABLE vendas (
+    id_venda INT AUTO_INCREMENT PRIMARY KEY,    -- Identificador único da venda
+    id_cliente INT NOT NULL,                    -- Identificador do cliente (chave estrangeira)
+    id_produto INT NOT NULL,                    -- Identificador do produto (chave estrangeira)
+    quantidade INT NOT NULL,                   -- Quantidade vendida
+    data_venda DATE NOT NULL,                  -- Data da venda
+    FOREIGN KEY (id_cliente) REFERENCES clientes(id_cliente), -- Relação com a tabela de clientes
+    FOREIGN KEY (id_produto) REFERENCES produtos(id_produto)  -- Relação com a tabela de produtos
+);
+
+-- 6. Inserção de Dados na Tabela de Clientes
+INSERT INTO clientes (nome, email, telefone) VALUES
+('Ana Silva', 'ana.silva@example.com', '123456789'),
+('Carlos Souza', 'carlos.souza@example.com', '987654321'),
+('Juliana Santos', 'juliana.santos@example.com', '456123789');
+
+-- 7. Inserção de Dados na Tabela de Produtos
+INSERT INTO produtos (nome, preco, quantidade_estoque) VALUES
+('Produto A', 10.50, 100),
+('Produto B', 20.75, 150),
+('Produto C', 5.00, 200);
+
+-- 8. Inserção de Dados na Tabela de Vendas
+INSERT INTO vendas (id_cliente, id_produto, quantidade, data_venda) VALUES
+(1, 1, 2, '2024-09-01'),
+(2, 2, 1, '2024-09-02'),
+(1, 3, 5, '2024-09-02'),
+(3, 1, 1, '2024-09-03'),
+(2, 3, 3, '2024-09-03');
+
+-- 9. Consulta para Mostrar Todas as Vendas com Nome do Cliente e Nome do Produto
+SELECT v.id_venda, c.nome AS nome_cliente, p.nome AS nome_produto, v.quantidade, v.data_venda
+FROM vendas v
+JOIN clientes c ON v.id_cliente = c.id_cliente
+JOIN produtos p ON v.id_produto = p.id_produto;
+
+-- 10. Consulta para Mostrar Todas as Compras Realizadas por um Cliente Específico (por exemplo, id_cliente = 1)
+SELECT v.id_venda, p.nome AS nome_produto, v.quantidade, v.data_venda
+FROM vendas v
+JOIN produtos p ON v.id_produto = p.id_produto
+WHERE v.id_cliente = 1;
+
+-- 11. Consulta para Exibir o Total de Vendas Realizadas por Produto
+SELECT p.nome AS nome_produto, SUM(v.quantidade) AS total_vendas
+FROM vendas v
+JOIN produtos p ON v.id_produto = p.id_produto
+GROUP BY p.nome;
+
+-- 12. Atualização do Estoque de um Produto Após uma Venda (por exemplo, id_produto = 1, vendendo 2 unidades)
+UPDATE produtos
+SET quantidade_estoque = quantidade_estoque - 2
+WHERE id_produto = 1;
+
+-- 13. Atualização das Informações de um Cliente (por exemplo, id_cliente = 1, alterando telefone)
+UPDATE clientes
+SET telefone = '111222333'
+WHERE id_cliente = 1;
+
+-- 14. Deleção de uma Venda (por exemplo, id_venda = 1) e, se necessário, deletar o cliente associado
+-- Note: A deleção de um cliente associado é feita com cautela. Pode-se remover o cliente se ele não tiver outras vendas.
+DELETE FROM vendas WHERE id_venda = 1;
+
+-- Se o cliente não tiver mais vendas, ele pode ser removido também
+DELETE FROM clientes WHERE id_cliente = (SELECT id_cliente FROM vendas WHERE id_venda = 1);
+
+
+
